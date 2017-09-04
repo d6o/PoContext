@@ -4,6 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"net/http"
+
+	"github.com/go-chi/chi/middleware"
 	"github.com/sirupsen/logrus"
 )
 
@@ -28,12 +31,19 @@ func init() {
 	fieldLogger = l.WithField("key", "val")
 }
 
-func WithTraceID(ctx context.Context, traceID string) context.Context {
-	return context.WithValue(ctx, traceIDKey, traceID)
+func WithTraceID() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			traceID := r.Header.Get("ot-tracer-traceid")
+			ctx := context.WithValue(r.Context(), traceIDKey, traceID)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
+		return http.HandlerFunc(fn)
+	}
 }
 
-func WithDatabase(ctx context.Context, db *sql.DB) context.Context {
-	return context.WithValue(ctx, dbKey, db)
+func WithDatabase(db *sql.DB) func(next http.Handler) http.Handler {
+	return middleware.WithValue(dbKey, db)
 }
 
 func Logger(ctx context.Context) logrus.FieldLogger {

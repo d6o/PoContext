@@ -6,12 +6,10 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	ctx := context.Background()
 	router := chi.NewRouter()
 
 	db, err := NewDB("")
@@ -19,28 +17,28 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	logrus.Infof("%+v", db)
+	router.Use(
+		WithDatabase(db),
+	)
+	router.Route("/", func(r chi.Router) {
+		router.Use(
+			WithTraceID(),
+		)
+		r.Get("/", NewGetHandler().ServeHTTP)
+	})
 
-	ctx = WithDatabase(ctx, db)
-
-	router.Get("/", NewGetHandler(ctx).ServeHTTP)
-	http.ListenAndServe(":8888", router)
+	http.ListenAndServe(":8080", router)
 }
 
 type GetHandler struct {
-	ctx context.Context
 }
 
-func NewGetHandler(ctx context.Context) *GetHandler {
-	return &GetHandler{
-		ctx: ctx,
-	}
+func NewGetHandler() *GetHandler {
+	return &GetHandler{}
 }
 
 func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := WithTraceID(h.ctx, uuid.NewV4().String())
-
-	someOtherFunc(ctx)
+	someOtherFunc(r.Context())
 }
 
 func someOtherFunc(ctx context.Context) {
