@@ -34,8 +34,11 @@ func init() {
 func WithTraceID() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
 			traceID := r.Header.Get("ot-tracer-traceid")
-			ctx := context.WithValue(r.Context(), traceIDKey, traceID)
+			if traceID != "" {
+				ctx = context.WithValue(ctx, traceIDKey, traceID)
+			}
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 		return http.HandlerFunc(fn)
