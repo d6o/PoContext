@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	pocontext "github.com/disiqueira/PoContext/context"
 	"github.com/go-chi/chi"
 	"github.com/sirupsen/logrus"
 )
@@ -18,11 +19,11 @@ func main() {
 	}
 
 	router.Use(
-		WithDatabase(db),
+		pocontext.WithDatabase(db),
 	)
 	router.Route("/", func(r chi.Router) {
 		router.Use(
-			WithTraceID(),
+			pocontext.WithTraceID(),
 		)
 		r.Get("/", NewGetHandler().ServeHTTP)
 	})
@@ -42,10 +43,10 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func someOtherFunc(ctx context.Context) {
-	log := Logger(ctx)
+	log := pocontext.Logger(ctx)
 	log.Info("Starting func")
 
-	db, err := DB(ctx)
+	db, err := pocontext.DB(ctx)
 	if err != nil {
 		logrus.Fatal(err)
 	}
