@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	db, err := NewDB("")
+	db, err := NewDB(DATABASE_DSN)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -22,13 +22,13 @@ func main() {
 
 	router := chi.NewRouter()
 	router.Use(
-		middleware.Timeout(5*time.Second),
-		pomiddleware.TimeoutRecover(),
+		middleware.Timeout(5 * time.Second),
 	)
 
 	router.Route("/", func(r chi.Router) {
 		router.Use(
 			pomiddleware.TraceID(),
+			pomiddleware.TimeoutRecover(),
 		)
 		r.Get("/fast", NewGetHandler(db, 2).ServeHTTP)
 		r.Get("/medium", NewGetHandler(db, 3).ServeHTTP)

@@ -29,7 +29,7 @@ func TimeoutRecover() func(next http.Handler) http.Handler {
 			case <-done:
 				return
 			case <-r.Context().Done():
-				log.Warn("context timeout elapsed")
+				log.Warn("Context timeout elapsed")
 				return
 			}
 

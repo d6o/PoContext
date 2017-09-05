@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"errors"
 	pocontext "github.com/disiqueira/PoContext/context"
 	"github.com/palantir/stacktrace"
 )
@@ -46,8 +47,7 @@ func someOtherFunc(ctx context.Context, db *sql.DB, timeAux int) error {
 	query := "SELECT pg_sleep($1)"
 	rows, err := db.QueryContext(ctx, query, timeAux)
 	if err != nil {
-		log.Warn(err)
-		return stacktrace.Propagate(err, "error executing SQL Query")
+		return stacktrace.Propagate(err, "Error executing SQL Query")
 	}
 	defer rows.Close()
 
@@ -57,7 +57,7 @@ func someOtherFunc(ctx context.Context, db *sql.DB, timeAux int) error {
 
 	//Verify if the context still valid.
 	if pocontext.CheckTimeout(ctx) {
-		return stacktrace.Propagate(err, "no more time to continue with this context")
+		return errors.New("No more time to continue with this context")
 	}
 
 	log.Info("Executed everything in someOtherFunc")
