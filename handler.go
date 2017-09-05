@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net/http"
 	"time"
 
-	"errors"
 	pocontext "github.com/disiqueira/PoContext/context"
+
 	"github.com/palantir/stacktrace"
 )
 
