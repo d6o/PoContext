@@ -2,7 +2,6 @@ package context
 
 import (
 	"context"
-	"errors"
 
 	"github.com/sirupsen/logrus"
 )
@@ -10,48 +9,43 @@ import (
 type indexContext int
 
 const (
-	traceIDKey = iota
+	loggerKey = iota
 )
 
 var (
-	fieldLogger logrus.FieldLogger
+	baseLogger logrus.FieldLogger
 )
 
 func init() {
-	fieldLogger = logrus.New().WithFields(nil)
+	baseLogger = logrus.New().WithFields(nil)
 }
 
-func SetLogger(logger logrus.FieldLogger) {
-	fieldLogger = logger
+func SetBaseLogger(logger logrus.FieldLogger) {
+	baseLogger = logger
 }
 
 func WithTraceID(ctx context.Context, traceID string) context.Context {
-	if traceID != "" {
-		ctx = context.WithValue(ctx, traceIDKey, traceID)
+	if traceID == "" {
+		return ctx
 	}
+	ctx = logWithField(ctx, "traceID", traceID)
 	return ctx
 }
 
+func logWithField(ctx context.Context, key string, value interface{}) context.Context {
+	log := Logger(ctx).WithField(key, value)
+	return context.WithValue(ctx, loggerKey, log)
+}
+
 func Logger(ctx context.Context) logrus.FieldLogger {
-	logger := fieldLogger
-
-	if id, err := traceID(ctx); err == nil {
-		logger = logger.WithField("traceID", id)
-	}
-
-	return logger
-}
-
-func traceID(ctx context.Context) (string, error) {
-	traceID, ok := ctx.Value(traceIDKey).(string)
+	log, ok := ctx.Value(loggerKey).(*logrus.Entry)
 	if !ok {
-		return "", errors.New("No TraceID in the context")
+		return baseLogger
 	}
-
-	return traceID, nil
+	return log
 }
 
-func CheckTimeout(ctx context.Context) bool {
+func CheckDone(ctx context.Context) bool {
 	select {
 	case <-ctx.Done():
 		return true
