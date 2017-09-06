@@ -57,7 +57,7 @@ func someOtherFunc(ctx context.Context, db *sql.DB, timeAux int) error {
 	time.Sleep(time.Duration(timeAux) * time.Second)
 
 	//Verify if the context still valid.
-	if pocontext.CheckTimeout(ctx) {
+	if pocontext.CheckDone(ctx) {
 		return errors.New("No more time to continue with this context")
 	}
 
