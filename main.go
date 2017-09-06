@@ -8,8 +8,8 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/sirupsen/logrus"
 
-	pocontext "github.com/disiqueira/PoContext/context"
-	pomiddleware "github.com/disiqueira/PoContext/middleware"
+	poContext "github.com/disiqueira/PoContext/context"
+	poMiddleware "github.com/disiqueira/PoContext/middleware"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	pocontext.SetLogger(logger())
+	poContext.SetBaseLogger(logger())
 
 	router := chi.NewRouter()
 	router.Use(
@@ -27,8 +27,8 @@ func main() {
 
 	router.Route("/", func(r chi.Router) {
 		router.Use(
-			pomiddleware.TraceID(),
-			pomiddleware.TimeoutRecover(),
+			poMiddleware.TraceID(),
+			poMiddleware.TimeoutRecover(),
 		)
 		r.Get("/fast", NewGetHandler(db, 2).ServeHTTP)
 		r.Get("/medium", NewGetHandler(db, 3).ServeHTTP)
