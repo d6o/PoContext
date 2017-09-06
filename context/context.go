@@ -14,15 +14,15 @@ const (
 )
 
 var (
-	fieldLogger logrus.FieldLogger
+	baseLogger logrus.FieldLogger
 )
 
 func init() {
-	fieldLogger = logrus.New().WithFields(nil)
+	baseLogger = logrus.New().WithFields(nil)
 }
 
-func SetLogger(logger logrus.FieldLogger) {
-	fieldLogger = logger
+func SetBaseLogger(logger logrus.FieldLogger) {
+	baseLogger = logger
 }
 
 func WithTraceID(ctx context.Context, traceID string) context.Context {
@@ -33,7 +33,7 @@ func WithTraceID(ctx context.Context, traceID string) context.Context {
 }
 
 func Logger(ctx context.Context) logrus.FieldLogger {
-	logger := fieldLogger
+	logger := baseLogger
 
 	if id, err := traceID(ctx); err == nil {
 		logger = logger.WithField("traceID", id)
@@ -51,7 +51,7 @@ func traceID(ctx context.Context) (string, error) {
 	return traceID, nil
 }
 
-func CheckTimeout(ctx context.Context) bool {
+func CheckDone(ctx context.Context) bool {
 	select {
 	case <-ctx.Done():
 		return true
